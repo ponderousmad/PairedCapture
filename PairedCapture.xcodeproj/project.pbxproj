@@ -19,6 +19,10 @@
 		7851A6ED1C49E47800EEB9E0 /* Structure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7851A6EC1C49E47800EEB9E0 /* Structure.framework */; };
 		7851A6EE1C49E47800EEB9E0 /* Structure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7851A6EC1C49E47800EEB9E0 /* Structure.framework */; };
 		7851A6EF1C49E47800EEB9E0 /* Structure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7851A6EC1C49E47800EEB9E0 /* Structure.framework */; };
+		7851A6F11C49E50200EEB9E0 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 7851A6F01C49E50200EEB9E0 /* libz.tbd */; };
+		7851A6F31C49E50D00EEB9E0 /* ExternalAccessory.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7851A6F21C49E50D00EEB9E0 /* ExternalAccessory.framework */; };
+		7851A6F51C49E51900EEB9E0 /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7851A6F41C49E51900EEB9E0 /* ImageIO.framework */; };
+		7851A6F71C49E52500EEB9E0 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7851A6F61C49E52500EEB9E0 /* Accelerate.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,6 +59,10 @@
 		7851A6DA1C4943D300EEB9E0 /* PairedCaptureUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairedCaptureUITests.swift; sourceTree = "<group>"; };
 		7851A6DC1C4943D300EEB9E0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		7851A6EC1C49E47800EEB9E0 /* Structure.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Structure.framework; sourceTree = "<group>"; };
+		7851A6F01C49E50200EEB9E0 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		7851A6F21C49E50D00EEB9E0 /* ExternalAccessory.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ExternalAccessory.framework; path = System/Library/Frameworks/ExternalAccessory.framework; sourceTree = SDKROOT; };
+		7851A6F41C49E51900EEB9E0 /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
+		7851A6F61C49E52500EEB9E0 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,7 +70,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7851A6F71C49E52500EEB9E0 /* Accelerate.framework in Frameworks */,
+				7851A6F31C49E50D00EEB9E0 /* ExternalAccessory.framework in Frameworks */,
+				7851A6F51C49E51900EEB9E0 /* ImageIO.framework in Frameworks */,
 				7851A6ED1C49E47800EEB9E0 /* Structure.framework in Frameworks */,
+				7851A6F11C49E50200EEB9E0 /* libz.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -88,6 +100,10 @@
 		7851A6AA1C4943D300EEB9E0 = {
 			isa = PBXGroup;
 			children = (
+				7851A6F61C49E52500EEB9E0 /* Accelerate.framework */,
+				7851A6F41C49E51900EEB9E0 /* ImageIO.framework */,
+				7851A6F21C49E50D00EEB9E0 /* ExternalAccessory.framework */,
+				7851A6F01C49E50200EEB9E0 /* libz.tbd */,
 				7851A6EC1C49E47800EEB9E0 /* Structure.framework */,
 				7851A6B51C4943D300EEB9E0 /* PairedCapture */,
 				7851A6CE1C4943D300EEB9E0 /* PairedCaptureTests */,
@@ -421,6 +437,7 @@
 				);
 				INFOPLIST_FILE = PairedCapture/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				OTHER_LDFLAGS = "-lc++";
 				PRODUCT_BUNDLE_IDENTIFIER = com.ponderousmad.PairedCapture;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -436,6 +453,7 @@
 				);
 				INFOPLIST_FILE = PairedCapture/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				OTHER_LDFLAGS = "-lc++";
 				PRODUCT_BUNDLE_IDENTIFIER = com.ponderousmad.PairedCapture;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
