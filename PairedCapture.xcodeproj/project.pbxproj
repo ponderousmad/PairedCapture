@@ -16,6 +16,9 @@
 		7851A6C51C4943D300EEB9E0 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7851A6C31C4943D300EEB9E0 /* LaunchScreen.storyboard */; };
 		7851A6D01C4943D300EEB9E0 /* PairedCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7851A6CF1C4943D300EEB9E0 /* PairedCaptureTests.swift */; };
 		7851A6DB1C4943D300EEB9E0 /* PairedCaptureUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7851A6DA1C4943D300EEB9E0 /* PairedCaptureUITests.swift */; };
+		7851A6ED1C49E47800EEB9E0 /* Structure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7851A6EC1C49E47800EEB9E0 /* Structure.framework */; };
+		7851A6EE1C49E47800EEB9E0 /* Structure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7851A6EC1C49E47800EEB9E0 /* Structure.framework */; };
+		7851A6EF1C49E47800EEB9E0 /* Structure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7851A6EC1C49E47800EEB9E0 /* Structure.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +54,7 @@
 		7851A6D61C4943D300EEB9E0 /* PairedCaptureUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PairedCaptureUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7851A6DA1C4943D300EEB9E0 /* PairedCaptureUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairedCaptureUITests.swift; sourceTree = "<group>"; };
 		7851A6DC1C4943D300EEB9E0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7851A6EC1C49E47800EEB9E0 /* Structure.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Structure.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +62,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7851A6ED1C49E47800EEB9E0 /* Structure.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +70,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7851A6EE1C49E47800EEB9E0 /* Structure.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -72,6 +78,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7851A6EF1C49E47800EEB9E0 /* Structure.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -81,6 +88,7 @@
 		7851A6AA1C4943D300EEB9E0 = {
 			isa = PBXGroup;
 			children = (
+				7851A6EC1C49E47800EEB9E0 /* Structure.framework */,
 				7851A6B51C4943D300EEB9E0 /* PairedCapture */,
 				7851A6CE1C4943D300EEB9E0 /* PairedCaptureTests */,
 				7851A6D91C4943D300EEB9E0 /* PairedCaptureUITests */,
@@ -407,6 +415,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				INFOPLIST_FILE = PairedCapture/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.ponderousmad.PairedCapture;
@@ -418,6 +430,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				INFOPLIST_FILE = PairedCapture/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.ponderousmad.PairedCapture;
@@ -429,6 +445,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				INFOPLIST_FILE = PairedCaptureTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.ponderousmad.PairedCaptureTests;
@@ -441,6 +461,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				INFOPLIST_FILE = PairedCaptureTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.ponderousmad.PairedCaptureTests;
@@ -452,6 +476,10 @@
 		7851A6E61C4943D300EEB9E0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				INFOPLIST_FILE = PairedCaptureUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.ponderousmad.PairedCaptureUITests;
@@ -464,6 +492,10 @@
 		7851A6E71C4943D300EEB9E0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				INFOPLIST_FILE = PairedCaptureUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.ponderousmad.PairedCaptureUITests;
@@ -492,6 +524,7 @@
 				7851A6E11C4943D300EEB9E0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		7851A6E21C4943D300EEB9E0 /* Build configuration list for PBXNativeTarget "PairedCaptureTests" */ = {
 			isa = XCConfigurationList;
@@ -500,6 +533,7 @@
 				7851A6E41C4943D300EEB9E0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		7851A6E51C4943D300EEB9E0 /* Build configuration list for PBXNativeTarget "PairedCaptureUITests" */ = {
 			isa = XCConfigurationList;
@@ -508,6 +542,7 @@
 				7851A6E71C4943D300EEB9E0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
