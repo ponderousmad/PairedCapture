@@ -26,6 +26,9 @@
 		7851A7001C49E6D200EEB9E0 /* StructureSensor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7851A6FF1C49E6D200EEB9E0 /* StructureSensor.swift */; };
 		7851A7011C49E6D200EEB9E0 /* StructureSensor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7851A6FF1C49E6D200EEB9E0 /* StructureSensor.swift */; };
 		7851A7021C49E6D200EEB9E0 /* StructureSensor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7851A6FF1C49E6D200EEB9E0 /* StructureSensor.swift */; };
+		7851A7051C4B2B3200EEB9E0 /* CaptureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7851A7041C4B2B3200EEB9E0 /* CaptureViewController.swift */; };
+		7851A7061C4B2B3200EEB9E0 /* CaptureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7851A7041C4B2B3200EEB9E0 /* CaptureViewController.swift */; };
+		7851A7071C4B2B3200EEB9E0 /* CaptureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7851A7041C4B2B3200EEB9E0 /* CaptureViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -68,6 +71,7 @@
 		7851A6F61C49E52500EEB9E0 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		7851A6F81C49E60700EEB9E0 /* PairedCapture-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PairedCapture-Bridging-Header.h"; sourceTree = "<group>"; };
 		7851A6FF1C49E6D200EEB9E0 /* StructureSensor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructureSensor.swift; sourceTree = "<group>"; };
+		7851A7041C4B2B3200EEB9E0 /* CaptureViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CaptureViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -136,6 +140,7 @@
 				7851A6C61C4943D300EEB9E0 /* Info.plist */,
 				7851A6F81C49E60700EEB9E0 /* PairedCapture-Bridging-Header.h */,
 				7851A6FF1C49E6D200EEB9E0 /* StructureSensor.swift */,
+				7851A7041C4B2B3200EEB9E0 /* CaptureViewController.swift */,
 			);
 			path = PairedCapture;
 			sourceTree = "<group>";
@@ -302,6 +307,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7851A6B91C4943D300EEB9E0 /* RootViewController.swift in Sources */,
+				7851A7051C4B2B3200EEB9E0 /* CaptureViewController.swift in Sources */,
 				7851A7001C49E6D200EEB9E0 /* StructureSensor.swift in Sources */,
 				7851A6BD1C4943D300EEB9E0 /* ModelController.swift in Sources */,
 				7851A6BB1C4943D300EEB9E0 /* DataViewController.swift in Sources */,
@@ -314,6 +320,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7851A6D01C4943D300EEB9E0 /* PairedCaptureTests.swift in Sources */,
+				7851A7061C4B2B3200EEB9E0 /* CaptureViewController.swift in Sources */,
 				7851A7011C49E6D200EEB9E0 /* StructureSensor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -323,6 +330,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7851A6DB1C4943D300EEB9E0 /* PairedCaptureUITests.swift in Sources */,
+				7851A7071C4B2B3200EEB9E0 /* CaptureViewController.swift in Sources */,
 				7851A7021C49E6D200EEB9E0 /* StructureSensor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
