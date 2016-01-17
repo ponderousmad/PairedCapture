@@ -105,11 +105,7 @@
 		7851A6AA1C4943D300EEB9E0 = {
 			isa = PBXGroup;
 			children = (
-				7851A6F61C49E52500EEB9E0 /* Accelerate.framework */,
-				7851A6F41C49E51900EEB9E0 /* ImageIO.framework */,
-				7851A6F21C49E50D00EEB9E0 /* ExternalAccessory.framework */,
-				7851A6F01C49E50200EEB9E0 /* libz.tbd */,
-				7851A6EC1C49E47800EEB9E0 /* Structure.framework */,
+				7851A7031C4B278600EEB9E0 /* Frameworks */,
 				7851A6B51C4943D300EEB9E0 /* PairedCapture */,
 				7851A6CE1C4943D300EEB9E0 /* PairedCaptureTests */,
 				7851A6D91C4943D300EEB9E0 /* PairedCaptureUITests */,
@@ -160,6 +156,18 @@
 				7851A6DC1C4943D300EEB9E0 /* Info.plist */,
 			);
 			path = PairedCaptureUITests;
+			sourceTree = "<group>";
+		};
+		7851A7031C4B278600EEB9E0 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				7851A6F01C49E50200EEB9E0 /* libz.tbd */,
+				7851A6EC1C49E47800EEB9E0 /* Structure.framework */,
+				7851A6F21C49E50D00EEB9E0 /* ExternalAccessory.framework */,
+				7851A6F41C49E51900EEB9E0 /* ImageIO.framework */,
+				7851A6F61C49E52500EEB9E0 /* Accelerate.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
