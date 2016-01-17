@@ -76,12 +76,27 @@
                     <view key="view" contentMode="scaleToFill" id="xdi-gP-eLK">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Status" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="h52-Kk-Chz">
+                                <rect key="frame" x="275" y="28" width="50" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="h52-Kk-Chz" firstAttribute="top" secondItem="7D0-sN-koJ" secondAttribute="bottom" constant="8" id="43W-mo-wDF"/>
+                            <constraint firstItem="h52-Kk-Chz" firstAttribute="centerX" secondItem="xdi-gP-eLK" secondAttribute="centerX" id="XX1-Rk-tvL"/>
+                        </constraints>
                     </view>
+                    <connections>
+                        <outlet property="statusLabel" destination="h52-Kk-Chz" id="sZf-bd-xDs"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="hau-gf-Mzj" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1291" y="-256"/>
+            <point key="canvasLocation" x="1272" y="-243"/>
         </scene>
     </scenes>
 </document>

@@ -9,6 +9,9 @@
 import Foundation
 
 class CaptureViewController: UIViewController {
+    
+    @IBOutlet weak var statusLabel: UILabel!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
