@@ -36,11 +36,13 @@ class CaptureViewController: UIViewController, SensorObserverDelegate {
     }
     
     func statusChange(status: String) {
-        statusLabel.text = status;
-        if let text = statusHistory.text {
-            statusHistory.text = text + "\n" + status
-        } else {
-            statusHistory.text = status;
+        if statusLabel.text != status {
+            statusLabel.text = status;
+            if let text = statusHistory.text {
+                statusHistory.text = text + "\n" + status
+            } else {
+                statusHistory.text = status;
+            }
         }
     }
     
