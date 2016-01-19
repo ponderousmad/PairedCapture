@@ -11,14 +11,19 @@ import Foundation
 class CaptureViewController: UIViewController, SensorObserverDelegate {
     
     @IBOutlet weak var capturedImage: UIImageView!
+    @IBOutlet weak var capturedDepth: UIImageView!
     @IBOutlet weak var statusLabel: UILabel!
+    @IBOutlet weak var statusHistory: UILabel!
     var sensor : StructureSensor?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        self.sensor = StructureSensor(observer: self);
+        statusHistory.lineBreakMode = .ByWordWrapping
+        statusHistory.numberOfLines = 0
+        
+        sensor = StructureSensor(observer: self);
     }
     
     override func didReceiveMemoryWarning() {
@@ -32,6 +37,16 @@ class CaptureViewController: UIViewController, SensorObserverDelegate {
     
     func statusChange(status: String) {
         statusLabel.text = status;
+        if let text = statusHistory.text {
+            statusHistory.text = text + "\n" + status
+        } else {
+            statusHistory.text = status;
+        }
+    }
+    
+    func captureDepth(image: UIImage!) {
+        capturedDepth.image = image;
+        
     }
     
     func captureImage(image: UIImage!) {
