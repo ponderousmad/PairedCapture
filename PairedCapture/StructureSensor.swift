@@ -41,9 +41,10 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
     func tryStartStreaming() -> Bool {
         if tryInitializeSensor() {
             let options : [NSObject : AnyObject] = [
-                kSTStreamConfigKey: NSNumber(integer: STStreamConfig.Depth640x480.rawValue),
+                kSTStreamConfigKey: NSNumber(integer: STStreamConfig.RegisteredDepth640x480.rawValue),
                 kSTFrameSyncConfigKey: NSNumber(integer: STFrameSyncConfig.DepthAndRgb.rawValue),
-                kSTHoleFilterConfigKey: true
+                kSTHoleFilterConfigKey: true,
+                kSTColorCameraFixedLensPositionKey: 1.0
             ]
             do {
                 try STSensorController.sharedController().startStreamingWithOptions(options as [NSObject : AnyObject])
@@ -74,7 +75,6 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
                         self.startCamera()
                     }
                 }
-                
             }
         }
         return true;
@@ -114,8 +114,7 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
             
             device.setFocusModeLockedWithLensPosition(1.0, completionHandler: nil)
             device.unlockForConfiguration()
-            
-            
+
             do {
                 let input = try AVCaptureDeviceInput(device: device)
                 captureSession!.addInput(input)
@@ -163,6 +162,7 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
     
     func captureOutput(captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, fromConnection connection: AVCaptureConnection!) {
         controller.frameSyncNewColorBuffer(sampleBuffer)
+        // renderCameraImage(sampleBuffer)
     }
     
     func updateStatus(status: String) {
@@ -196,6 +196,15 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
     }
     
     func sensorDidOutputDepthFrame(depthFrame: STDepthFrame!) {
+        renderDepth(depthFrame)
+    }
+    
+    func sensorDidOutputSynchronizedDepthFrame(depthFrame: STDepthFrame!, andColorFrame: STColorFrame!) {
+        renderDepth(depthFrame)
+        renderCameraImage(andColorFrame.sampleBuffer)
+    }
+    
+    func renderDepth(depthFrame: STDepthFrame) {
         if let renderer = toRGBA {
             updateStatus("Showing Depth \(depthFrame.width)x\(depthFrame.height)");
             let pixels = renderer.convertDepthFrameToRgba(depthFrame)
@@ -205,18 +214,12 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         }
     }
     
-    func sensorDidOutputSynchronizedDepthFrame(depthFrame: STDepthFrame!, colorFrame: STColorFrame) {
-        if let renderer = toRGBA {
-            updateStatus("Showing Color and Depth \(depthFrame.width)x\(depthFrame.height)");
-            let pixels = renderer.convertDepthFrameToRgba(depthFrame)
-            if let image = imageFromPixels(pixels, width: Int(renderer.width), height: Int(renderer.height)) {
-                self.sensorObserver.captureDepth(image)
-            }
-        }
-        if let cvPixels = CMSampleBufferGetImageBuffer(colorFrame.sampleBuffer) {
+    func renderCameraImage(sampleBuffer: CMSampleBufferRef) {
+        if let cvPixels = CMSampleBufferGetImageBuffer(sampleBuffer) {
             let coreImage = CIImage(CVPixelBuffer: cvPixels)
             let context = CIContext()
-            let cgImage = context.createCGImage(coreImage, fromRect: CGRectMake(0, 0, CGFloat(colorFrame.width), CGFloat(colorFrame.height)))
+            let rect = CGRectMake(0, 0, CGFloat(CVPixelBufferGetWidth(cvPixels)), CGFloat(CVPixelBufferGetHeight(cvPixels)))
+            let cgImage = context.createCGImage(coreImage, fromRect: rect)
             let image = UIImage(CGImage: cgImage)
             self.sensorObserver.captureImage(image)
         }
