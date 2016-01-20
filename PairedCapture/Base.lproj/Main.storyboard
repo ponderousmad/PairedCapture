@@ -88,7 +88,7 @@
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="E83-MR-T7v">
+                            <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="E83-MR-T7v">
                                 <rect key="frame" x="298" y="298" width="5" height="5"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <constraints>
@@ -105,12 +105,21 @@
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="GFi-uO-uXr">
+                                <rect key="frame" x="546" y="550" width="34" height="30"/>
+                                <state key="normal" title="Save"/>
+                                <connections>
+                                    <action selector="saveCapture:" destination="Qur-L2-huO" eventType="touchUpInside" id="p8Q-ve-pME"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="h52-Kk-Chz" firstAttribute="top" secondItem="7D0-sN-koJ" secondAttribute="bottom" constant="8" id="43W-mo-wDF"/>
                             <constraint firstItem="BbL-O3-ZOM" firstAttribute="top" secondItem="h52-Kk-Chz" secondAttribute="bottom" constant="8" id="G2E-nb-79Z"/>
                             <constraint firstItem="Syu-Te-fTr" firstAttribute="leading" secondItem="xdi-gP-eLK" secondAttribute="leadingMargin" constant="-20" id="IVp-uk-aHw"/>
+                            <constraint firstItem="GFi-uO-uXr" firstAttribute="trailing" secondItem="xdi-gP-eLK" secondAttribute="trailingMargin" id="JiZ-fi-2q2"/>
+                            <constraint firstItem="4K9-Km-r2f" firstAttribute="top" secondItem="GFi-uO-uXr" secondAttribute="bottom" constant="20" id="NlZ-jB-6cx"/>
                             <constraint firstItem="6VW-0m-gaY" firstAttribute="trailing" secondItem="xdi-gP-eLK" secondAttribute="trailingMargin" constant="20" id="Tvu-aU-ApU"/>
                             <constraint firstItem="E83-MR-T7v" firstAttribute="centerX" secondItem="xdi-gP-eLK" secondAttribute="centerX" id="Uex-ud-BIx"/>
                             <constraint firstItem="Syu-Te-fTr" firstAttribute="trailing" secondItem="xdi-gP-eLK" secondAttribute="trailingMargin" constant="20" id="VTe-Gm-e2N"/>

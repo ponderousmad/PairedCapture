@@ -54,4 +54,16 @@ class CaptureViewController: UIViewController, SensorObserverDelegate {
     func captureImage(image: UIImage!) {
         capturedImage.image = image;
     }
+    
+    @IBAction func saveCapture(sender: AnyObject) {
+        if let color = capturedImage.image, depth = capturedDepth.image {
+            let size = CGSizeMake(max(color.size.width, depth.size.width), color.size.height + depth.size.height)
+            UIGraphicsBeginImageContext(size)
+            color.drawInRect(CGRectMake(0, 0, color.size.width, color.size.height))
+            depth.drawInRect(CGRectMake(0, color.size.height, depth.size.width, depth.size.height))
+            let combined = UIGraphicsGetImageFromCurrentImageContext()
+            UIGraphicsEndImageContext()
+            UIImageWriteToSavedPhotosAlbum(combined, nil, nil, nil)
+        }
+    }
 }
