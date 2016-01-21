@@ -20,6 +20,7 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
     var sensorObserver : SensorObserverDelegate!
     var captureSession : AVCaptureSession?
     var videoDevice : AVCaptureDevice?
+    var saveNextCapture = false
     let controller : STSensorController
     
     init(observer: SensorObserverDelegate!) {
@@ -202,7 +203,12 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
     
     func sensorDidOutputSynchronizedDepthFrame(depthFrame: STDepthFrame!, andColorFrame: STColorFrame!) {
         renderDepth(depthFrame)
-        renderCameraImage(andColorFrame.sampleBuffer)
+        if let image = imageFromSampleBuffer(andColorFrame.sampleBuffer) {
+            self.sensorObserver.captureImage(image)
+            if saveNextCapture {
+                save(depthFrame, color: image)
+            }
+        }
     }
     
     func renderDepth(depthFrame: STDepthFrame) {
@@ -218,15 +224,16 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         }
     }
     
-    func renderCameraImage(sampleBuffer: CMSampleBufferRef) {
+    func imageFromSampleBuffer(sampleBuffer : CMSampleBufferRef) -> UIImage? {
         if let cvPixels = CMSampleBufferGetImageBuffer(sampleBuffer) {
             let coreImage = CIImage(CVPixelBuffer: cvPixels)
             let context = CIContext()
             let rect = CGRectMake(0, 0, CGFloat(CVPixelBufferGetWidth(cvPixels)), CGFloat(CVPixelBufferGetHeight(cvPixels)))
             let cgImage = context.createCGImage(coreImage, fromRect: rect)
             let image = UIImage(CGImage: cgImage)
-            self.sensorObserver.captureImage(image)
+            return image
         }
+        return nil
     }
     
     func imageFromPixels(pixels : UnsafeMutablePointer<UInt8>, width: Int, height: Int) -> UIImage? {
@@ -249,5 +256,53 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
             CGColorRenderingIntent.RenderingIntentDefault);     //rendering intent
         
         return UIImage(CGImage: image!)
+    }
+    
+    func renderDepthInMillimeters(depthFrame: STDepthFrame!) -> UIImage? {
+        var imageData = [UInt8](count: Int(depthFrame.width * depthFrame.height * 4), repeatedValue: 255)
+        let maxRedValue = UInt8(247)
+        let channelMax = 8
+        let channelsMax = channelMax * channelMax
+        let maxDepthValue = Float(maxRedValue) * Float(channelsMax)
+        for i in 0 ..< Int(depthFrame.width * depthFrame.height) {
+            let value = depthFrame.depthInMillimeters[i]
+            if value.isNaN {
+                imageData[i * 4 + 0] = 0
+                imageData[i * 4 + 1] = 0
+                imageData[i * 4 + 2] = 0
+            } else {
+                let depth = Int(max(0, min(value.isNaN ? 0 : value, maxDepthValue)))
+                let red = maxRedValue - UInt8(depth / channelsMax)
+                let low = depth % channelsMax
+                let green = red + UInt8(low / channelMax)
+                let blue = red + UInt8(low % channelMax)
+                imageData[i * 4 + 0] = red
+                imageData[i * 4 + 1] = green
+                imageData[i * 4 + 2] = blue
+            }
+        }
+        return imageFromPixels(&imageData, width: Int(depthFrame.width), height: Int(depthFrame.height))
+    }
+    
+    func saveNext() {
+        saveNextCapture = true
+    }
+    
+    func save(depthFrame: STDepthFrame!, color: UIImage!) {
+        if let depth = renderDepthInMillimeters(depthFrame) {
+            let size = CGSizeMake(max(color.size.width, depth.size.width), color.size.height + depth.size.height)
+            UIGraphicsBeginImageContext(size)
+            color.drawInRect(CGRectMake(0, 0, color.size.width, color.size.height))
+            depth.drawInRect(CGRectMake(0, color.size.height, depth.size.width, depth.size.height))
+            let combined = UIGraphicsGetImageFromCurrentImageContext()
+            UIGraphicsEndImageContext()
+            
+            if let imageData = UIImagePNGRepresentation(combined) {
+                if let png = UIImage(data: imageData) {
+                    UIImageWriteToSavedPhotosAlbum(png, nil, nil, nil)
+                }
+            }
+        }
+        saveNextCapture = false
     }
 }
