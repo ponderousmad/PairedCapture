@@ -12,6 +12,7 @@ protocol SensorObserverDelegate {
     func statusChange(status: String)
     func captureDepth(image: UIImage!)
     func captureImage(image: UIImage!)
+    func captureStats(centerDepth: Float)
 }
 
 class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoDataOutputSampleBufferDelegate {
@@ -211,6 +212,9 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
             if let image = imageFromPixels(pixels, width: Int(renderer.width), height: Int(renderer.height)) {
                 self.sensorObserver.captureDepth(image)
             }
+            
+            let offset = Int((depthFrame.height * (depthFrame.width + 1)) / 2)
+            self.sensorObserver.captureStats(depthFrame.depthInMillimeters[offset])
         }
     }
     

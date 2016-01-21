@@ -12,6 +12,7 @@ class CaptureViewController: UIViewController, SensorObserverDelegate {
     
     @IBOutlet weak var capturedImage: UIImageView!
     @IBOutlet weak var capturedDepth: UIImageView!
+    @IBOutlet weak var statsLabel: UILabel!
     @IBOutlet weak var statusLabel: UILabel!
     @IBOutlet weak var statusHistory: UILabel!
     var sensor : StructureSensor?
@@ -53,6 +54,10 @@ class CaptureViewController: UIViewController, SensorObserverDelegate {
     
     func captureImage(image: UIImage!) {
         capturedImage.image = image;
+    }
+    
+    func captureStats(centerDepth: Float) {
+        statsLabel.text = "\(centerDepth / 1000.0) m"
     }
     
     @IBAction func saveCapture(sender: AnyObject) {
