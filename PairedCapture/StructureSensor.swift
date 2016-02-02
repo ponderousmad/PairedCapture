@@ -13,6 +13,7 @@ protocol SensorObserverDelegate {
     func captureDepth(image: UIImage!)
     func captureImage(image: UIImage!)
     func captureStats(centerDepth: Float)
+    func saveComplete();
 }
 
 class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoDataOutputSampleBufferDelegate {
@@ -300,6 +301,7 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
             if let imageData = UIImagePNGRepresentation(combined) {
                 if let png = UIImage(data: imageData) {
                     UIImageWriteToSavedPhotosAlbum(png, nil, nil, nil)
+                    sensorObserver.saveComplete()
                 }
             }
         }
