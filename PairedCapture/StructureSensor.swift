@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import CoreMotion
 
 protocol SensorObserverDelegate {
     func statusChange(status: String)
@@ -23,6 +24,8 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
     var videoDevice : AVCaptureDevice?
     var saveNextCapture = false
     let controller : STSensorController
+    let motionManager = CMMotionManager()
+    var orientation : CMQuaternion?
     
     init(observer: SensorObserverDelegate!) {
         controller = STSensorController.sharedController()
@@ -31,6 +34,12 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         super.init()
         
         controller.delegate = self
+        
+        motionManager.startDeviceMotionUpdatesUsingReferenceFrame(
+            CMAttitudeReferenceFrame.XMagneticNorthZVertical,
+            toQueue: NSOperationQueue.currentQueue()!,
+            withHandler:handleMotion
+        )
     }
     
     func tryInitializeSensor() -> Bool {
@@ -259,29 +268,58 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         return UIImage(CGImage: image!)
     }
     
+    func quaternionValueToByte(v : Double, max : UInt8) -> UInt8 {
+        return UInt8(Double(max) * (v + 1) / 2)
+    }
+    
     func renderDepthInMillimeters(depthFrame: STDepthFrame!) -> UIImage? {
-        var imageData = [UInt8](count: Int(depthFrame.width * depthFrame.height * 4), repeatedValue: 255)
-        let maxRedValue = UInt8(247)
-        let channelMax = 8
-        let channelsMax = channelMax * channelMax
-        let maxDepthValue = Float(maxRedValue) * Float(channelsMax)
-        for i in 0 ..< Int(depthFrame.width * depthFrame.height) {
+        let byteMax = UInt8(255)
+        let channels = 4
+        let channelMax = 8 // Maximum value to encode in blue/green channels.
+        let maxRedValue = byteMax - UInt8(channelMax) // Maximum value to encode in red channel.
+        let channelsMax = channelMax * channelMax // Max encoded across blue/green
+        let maxDepthValue = Float(maxRedValue) * Float(channelsMax) // Max encoded across all channels.
+        var offset = 0
+        var imageData = [UInt8](count: Int(depthFrame.width * depthFrame.height) * channels, repeatedValue: byteMax)
+        
+        if let attitude = orientation {
+            // Pixel 0 is red to signify presense of orientation.
+            imageData[offset + 0] = byteMax
+            imageData[offset + 1] = 0
+            imageData[offset + 2] = 0
+            imageData[offset + 3] = byteMax
+            offset += channels
+            
+            // Pixel 1 encodes orientation.
+            imageData[offset + 0] = quaternionValueToByte(attitude.x, max: byteMax)
+            imageData[offset + 1] = quaternionValueToByte(attitude.y, max: byteMax)
+            imageData[offset + 2] = quaternionValueToByte(attitude.z, max: byteMax)
+            imageData[offset + 3] = quaternionValueToByte(attitude.w, max: byteMax)
+            offset += channels
+        }
+        
+        for i in offset ..< Int(depthFrame.width * depthFrame.height) {
             let value = depthFrame.depthInMillimeters[i]
             if value.isNaN {
-                imageData[i * 4 + 0] = 0
-                imageData[i * 4 + 1] = 0
-                imageData[i * 4 + 2] = 0
+                // Pure  black encodes unknown value.
+                imageData[i * channels + 0] = 0
+                imageData[i * channels + 1] = 0
+                imageData[i * channels + 2] = 0
             } else {
+                // Encode depth as integer between 0 to approx 2^14
+                // White is close, and make the pixels 'almost' greyscale so
+                // that you can get a rough idea of depth by eye.
                 let depth = Int(max(0, min(value.isNaN ? 0 : value, maxDepthValue)))
-                let red = maxRedValue - UInt8(depth / channelsMax)
-                let low = depth % channelsMax
-                let green = red + UInt8(low / channelMax)
-                let blue = red + UInt8(low % channelMax)
-                imageData[i * 4 + 0] = red
-                imageData[i * 4 + 1] = green
-                imageData[i * 4 + 2] = blue
+                let red = maxRedValue - UInt8(depth / channelsMax) // approx 8 bits in red
+                let low = depth % channelsMax // Lower 6 bits, of which
+                let green = red + UInt8(low / channelMax) // three bits go in green
+                let blue = red + UInt8(low % channelMax) // and three bits in blue.
+                imageData[i * channels + 0] = red
+                imageData[i * channels + 1] = green
+                imageData[i * channels + 2] = blue
             }
         }
+        
         return imageFromPixels(&imageData, width: Int(depthFrame.width), height: Int(depthFrame.height))
     }
     
@@ -307,4 +345,12 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         }
         saveNextCapture = false
     }
+    
+    func handleMotion(motion: CMDeviceMotion?, error: NSError?)
+    {
+        if let attitude = motion?.attitude {
+            orientation = attitude.quaternion
+        }
+    }
+
 }
