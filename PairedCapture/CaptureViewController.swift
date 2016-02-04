@@ -27,13 +27,9 @@ class CaptureViewController: UIViewController, SensorObserverDelegate {
         statusHistory.numberOfLines = 0
         
         sensor = StructureSensor(observer: self);
-        
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "appDidBecomeActive", name: UIApplicationDidBecomeActiveNotification, object: nil)
-        
-        appDidBecomeActive()
     }
     
-    func appDidBecomeActive() {
+    func activateSensor() {
         sensor?.tryReconnect()
     }
     
@@ -44,6 +40,16 @@ class CaptureViewController: UIViewController, SensorObserverDelegate {
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
+        
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "activateSensor", name: UIApplicationWillEnterForegroundNotification, object: nil)
+        
+        activateSensor()
+    }
+    
+    override func viewDidDisappear(animated: Bool) {
+        super.viewDidDisappear(animated)
+        
+        NSNotificationCenter.defaultCenter().removeObserver(self, name: UIApplicationWillEnterForegroundNotification, object: nil)
     }
     
     func statusChange(status: String) {
