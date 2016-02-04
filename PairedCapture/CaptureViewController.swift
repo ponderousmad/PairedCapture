@@ -27,6 +27,14 @@ class CaptureViewController: UIViewController, SensorObserverDelegate {
         statusHistory.numberOfLines = 0
         
         sensor = StructureSensor(observer: self);
+        
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "appDidBecomeActive", name: UIApplicationDidBecomeActiveNotification, object: nil)
+        
+        appDidBecomeActive()
+    }
+    
+    func appDidBecomeActive() {
+        sensor?.tryReconnect()
     }
     
     override func didReceiveMemoryWarning() {

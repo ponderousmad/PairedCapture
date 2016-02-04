@@ -35,6 +35,8 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         
         controller.delegate = self
         
+        tryInitializeSensor()
+        
         motionManager.startDeviceMotionUpdatesUsingReferenceFrame(
             CMAttitudeReferenceFrame.XMagneticNorthZVertical,
             toQueue: NSOperationQueue.currentQueue()!,
@@ -181,6 +183,14 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         sensorObserver.statusChange(status);
     }
     
+    func tryReconnect() {
+        if controller.isConnected() {
+            sensorDidConnect()
+        } else {
+            sensorDidDisconnect()
+        }
+    }
+    
     func sensorDidConnect() {
         if tryStartStreaming() {
             updateStatus("Streaming");
@@ -284,18 +294,18 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         
         if let attitude = orientation {
             // Pixel 0 is red to signify presense of orientation.
-            imageData[offset + 0] = byteMax
-            imageData[offset + 1] = 0
-            imageData[offset + 2] = 0
-            imageData[offset + 3] = byteMax
-            offset += channels
+            imageData[offset * channels + 0] = byteMax
+            imageData[offset * channels  + 1] = 0
+            imageData[offset * channels  + 2] = 0
+            imageData[offset * channels  + 3] = byteMax
+            offset += 1
             
             // Pixel 1 encodes orientation.
-            imageData[offset + 0] = quaternionValueToByte(attitude.x, max: byteMax)
-            imageData[offset + 1] = quaternionValueToByte(attitude.y, max: byteMax)
-            imageData[offset + 2] = quaternionValueToByte(attitude.z, max: byteMax)
-            imageData[offset + 3] = quaternionValueToByte(attitude.w, max: byteMax)
-            offset += channels
+            imageData[offset * channels  + 0] = quaternionValueToByte(attitude.x, max: byteMax)
+            imageData[offset * channels  + 1] = quaternionValueToByte(attitude.y, max: byteMax)
+            imageData[offset * channels  + 2] = quaternionValueToByte(attitude.z, max: byteMax)
+            imageData[offset * channels  + 3] = quaternionValueToByte(attitude.w, max: byteMax)
+            offset += 1
         }
         
         for i in offset ..< Int(depthFrame.width * depthFrame.height) {
