@@ -25,12 +25,28 @@ class CaptureViewController: UIViewController, SensorObserverDelegate {
         
         statusHistory.lineBreakMode = .ByWordWrapping
         statusHistory.numberOfLines = 0
+        statusHistory.hidden = true
         
         sensor = StructureSensor(observer: self);
+        
+        let statusSwipeDown = UISwipeGestureRecognizer(target: self, action: Selector("swipeStatus:"));
+        statusSwipeDown.direction = .Down
+        statusLabel.addGestureRecognizer(statusSwipeDown)
+        let statusSwipeUp = UISwipeGestureRecognizer(target: self, action: Selector("swipeStatus:"));
+        statusSwipeUp.direction = .Up
+        statusLabel.addGestureRecognizer(statusSwipeUp)
     }
     
     func activateSensor() {
         sensor?.tryReconnect()
+    }
+    
+    func swipeStatus(sender: UISwipeGestureRecognizer) {
+        if (sender.direction == .Up) {
+            statusHistory.hidden = true
+        } else if(sender.direction == .Down) {
+            statusHistory.hidden = false
+        }
     }
     
     override func didReceiveMemoryWarning() {
