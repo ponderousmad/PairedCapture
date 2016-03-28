@@ -29,10 +29,10 @@ class CaptureViewController: UIViewController, SensorObserverDelegate {
         
         sensor = StructureSensor(observer: self);
         
-        let statusSwipeDown = UISwipeGestureRecognizer(target: self, action: Selector("swipeStatus:"));
+        let statusSwipeDown = UISwipeGestureRecognizer(target: self, action: #selector(CaptureViewController.swipeStatus(_:)));
         statusSwipeDown.direction = .Down
         statusLabel.addGestureRecognizer(statusSwipeDown)
-        let statusSwipeUp = UISwipeGestureRecognizer(target: self, action: Selector("swipeStatus:"));
+        let statusSwipeUp = UISwipeGestureRecognizer(target: self, action: #selector(CaptureViewController.swipeStatus(_:)));
         statusSwipeUp.direction = .Up
         statusLabel.addGestureRecognizer(statusSwipeUp)
     }
@@ -57,7 +57,7 @@ class CaptureViewController: UIViewController, SensorObserverDelegate {
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "activateSensor", name: UIApplicationWillEnterForegroundNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(CaptureViewController.activateSensor), name: UIApplicationWillEnterForegroundNotification, object: nil)
         
         activateSensor()
     }
