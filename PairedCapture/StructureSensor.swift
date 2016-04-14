@@ -26,6 +26,8 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
     let controller : STSensorController
     let motionManager = CMMotionManager()
     var orientation : CMQuaternion?
+    var prevDepth : [[Float]] = []
+    let prevCount = 5
     
     init(observer: SensorObserverDelegate!) {
         controller = STSensorController.sharedController()
@@ -219,6 +221,7 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
     
     func sensorDidOutputDepthFrame(depthFrame: STDepthFrame!) {
         renderDepth(depthFrame)
+        forgetDepth()
     }
     
     func sensorDidOutputSynchronizedDepthFrame(depthFrame: STDepthFrame!, andColorFrame: STColorFrame!) {
@@ -229,9 +232,13 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
                 save(depthFrame, color: image)
             }
         }
+        forgetDepth()
     }
     
     func renderDepth(depthFrame: STDepthFrame) {
+        let size : Int = (Int)(depthFrame.width * depthFrame.height)
+        let buffer = UnsafeMutableBufferPointer<Float>(start: depthFrame.depthInMillimeters, count: size)
+        prevDepth.append(Array(buffer))
         if let renderer = toRGBA {
             updateStatus("Showing Depth \(depthFrame.width)x\(depthFrame.height)");
             let pixels = renderer.convertDepthFrameToRgba(depthFrame)
@@ -241,6 +248,12 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
             
             let offset = Int((depthFrame.height * (depthFrame.width + 1)) / 2)
             self.sensorObserver.captureStats(depthFrame.depthInMillimeters[offset])
+        }
+    }
+    
+    func forgetDepth() {
+        if prevDepth.count > prevCount {
+            prevDepth.removeFirst()
         }
     }
     
@@ -282,7 +295,7 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         return UInt8(Double(max) * (v + 1) / 2)
     }
     
-    func renderDepthInMillimeters(depthFrame: STDepthFrame!) -> UIImage? {
+    func renderDepthInMillimeters(depthFrame : STDepthFrame!) -> UIImage? {
         let byteMax = UInt8(255)
         let channels = 4
         let channelMax = 8 // Maximum value to encode in blue/green channels.
@@ -309,7 +322,13 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         }
         
         for i in offset ..< Int(depthFrame.width * depthFrame.height) {
-            let value = depthFrame.depthInMillimeters[i]
+            var value : Float
+            var prevFrame = prevDepth.count - 1
+            repeat {
+                value = prevDepth[prevFrame][i]
+                prevFrame -= 1
+            } while(value.isNaN && prevFrame >= 0)
+            
             if value.isNaN {
                 // Pure  black encodes unknown value.
                 imageData[i * channels + 0] = 0
