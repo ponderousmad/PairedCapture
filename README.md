@@ -7,4 +7,4 @@ Basically takes the image captured from the camera, and the depth information fr
 
 A 'save' button writes this image to the device's photo library as png (since jpg would break the encoding).
 
-An example of how to extract the depth portion of the image and decode it can be found in [pydent](https://github.com/ponderousmad/pyndent/blob/master/explore/decode.ipynb).
+An example of how to extract the depth portion of the image and decode it can be found in [pyndent](https://github.com/ponderousmad/pyndent/blob/master/internal/decode.ipynb).
