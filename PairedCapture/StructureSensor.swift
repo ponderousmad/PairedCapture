@@ -106,7 +106,7 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         }
         captureSession = AVCaptureSession()
         captureSession!.beginConfiguration()
-        captureSession!.sessionPreset = AVCaptureSessionPreset640x480
+        captureSession!.sessionPreset = AVCaptureSessionPresetInputPriority
         
         videoDevice = AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)!
         assert(videoDevice != nil);
@@ -117,6 +117,12 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
             }
             catch let error as NSError {
                 updateStatus(error.localizedDescription)
+                return
+            }
+            if selectCaptureFormat(device, width: 640, height: 480) {
+                updateStatus("Capture format set")
+            } else {
+                updateStatus("Capture format not set")
                 return
             }
             
@@ -136,7 +142,7 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
                 captureSession!.addInput(input)
                 let output = AVCaptureVideoDataOutput()
                 output.alwaysDiscardsLateVideoFrames = true
-                output.videoSettings = [kCVPixelBufferPixelFormatTypeKey: Int(kCVPixelFormatType_32BGRA)]
+                output.videoSettings = [kCVPixelBufferPixelFormatTypeKey: Int(kCVPixelFormatType_420YpCbCr8BiPlanarFullRange)]
                 output.setSampleBufferDelegate(self, queue: dispatch_get_main_queue())
                 captureSession!.addOutput(output)
             }
@@ -159,9 +165,45 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         updateStatus("Camera configured")
     }
     
+    func fourCharCodeFrom(string : String) -> FourCharCode {
+        assert(string.characters.count == 4, "String length must be 4")
+        var result : FourCharCode = 0
+        for char in string.utf16 {
+            result = (result << 8) + FourCharCode(char)
+        }
+        return result
+    }
+    
+    func selectCaptureFormat(device: AVCaptureDevice, width: Int32?=nil, height: Int32?=nil) -> Bool {
+        for f in device.formats {
+            let format = f as! AVCaptureDeviceFormat
+            if let formatDesc = format.formatDescription {
+                let fourCharCode = CMFormatDescriptionGetMediaSubType(formatDesc)
+                if fourCharCode != fourCharCodeFrom("420f") {
+                    continue
+                }
+                
+                let dims = CMVideoFormatDescriptionGetDimensions(formatDesc)
+                if let w = width {
+                    if dims.width != w {
+                        continue
+                    }
+                }
+                if let h = height {
+                    if dims.height != h {
+                        continue
+                    }
+                }
+            }
+            device.activeFormat = format
+            return true
+        }
+        return false
+    }
+    
     func startCamera() {
         setupCamera()
-        
+    
         if let session = captureSession {
             session.startRunning()
             updateStatus("Camera started")
@@ -178,7 +220,6 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
     
     func captureOutput(captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, fromConnection connection: AVCaptureConnection!) {
         controller.frameSyncNewColorBuffer(sampleBuffer)
-        // renderCameraImage(sampleBuffer)
     }
     
     func updateStatus(status: String) {
