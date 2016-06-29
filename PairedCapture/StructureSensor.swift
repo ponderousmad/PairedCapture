@@ -265,9 +265,9 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         forgetDepth()
     }
     
-    func sensorDidOutputSynchronizedDepthFrame(depthFrame: STDepthFrame!, andColorFrame: STColorFrame!) {
+    func sensorDidOutputSynchronizedDepthFrame(depthFrame: STDepthFrame!, colorFrame: STColorFrame!) {
         renderDepth(depthFrame)
-        if let image = imageFromSampleBuffer(andColorFrame.sampleBuffer) {
+        if let image = imageFromSampleBuffer(colorFrame.sampleBuffer) {
             self.sensorObserver.captureImage(image)
             if saveNextCapture {
                 save(depthFrame, color: image)
