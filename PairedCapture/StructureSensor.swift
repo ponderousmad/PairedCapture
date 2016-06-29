@@ -59,7 +59,7 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
             let options : [NSObject : AnyObject] = [
                 kSTStreamConfigKey: NSNumber(integer: STStreamConfig.RegisteredDepth640x480.rawValue),
                 kSTFrameSyncConfigKey: NSNumber(integer: STFrameSyncConfig.DepthAndRgb.rawValue),
-                kSTHoleFilterConfigKey: true,
+                kSTHoleFilterEnabledKey: true,
                 kSTColorCameraFixedLensPositionKey: 1.0
             ]
             do {
@@ -67,7 +67,7 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
                 let toRGBAOptions : [NSObject : AnyObject] = [
                     kSTDepthToRgbaStrategyKey : NSNumber(integer: STDepthToRgbaStrategy.RedToBlueGradient.rawValue)
                 ]
-                try toRGBA = STDepthToRgba(options: toRGBAOptions)
+                toRGBA = STDepthToRgba(options: toRGBAOptions)
                 startCamera()
                 return true
             } catch let error as NSError {
