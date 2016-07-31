@@ -25,7 +25,7 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
     var saveNextCapture = false
     let controller : STSensorController
     let motionManager = CMMotionManager()
-    var orientation : CMQuaternion?
+    var attitude : CMAttitude?
     var prevDepth : [[Float]] = []
     let prevCount = 5
     
@@ -332,8 +332,20 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         return UIImage(CGImage: image!)
     }
     
-    func quaternionValueToByte(v : Double, max : UInt8) -> UInt8 {
+    func unitValueToByte(v : Double, max : UInt8) -> UInt8 {
         return UInt8(Double(max) * (v + 1) / 2)
+    }
+    
+    func byteToUnitValue(v : UInt8, max : UInt8) -> Double {
+        return (Double(v) / Double(max) * 2) - 1
+    }
+    
+    func setPixel(inout image : [UInt8], offset : Int, r : UInt8, g : UInt8, b : UInt8, a : UInt8) -> Int {
+        image[offset + 0] = r
+        image[offset + 1] = g
+        image[offset + 2] = b
+        image[offset + 3] = a
+        return 1
     }
     
     func renderDepthInMillimeters(depthFrame : STDepthFrame!) -> UIImage? {
@@ -346,20 +358,46 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         var offset = 0
         var imageData = [UInt8](count: Int(depthFrame.width * depthFrame.height) * channels, repeatedValue: byteMax)
         
-        if let attitude = orientation {
+        if let orientation = attitude?.quaternion {
             // Pixel 0 is red to signify presense of orientation.
-            imageData[offset * channels + 0] = byteMax
-            imageData[offset * channels  + 1] = 0
-            imageData[offset * channels  + 2] = 0
-            imageData[offset * channels  + 3] = byteMax
-            offset += 1
+            offset += setPixel(&imageData, offset: offset * channels, r: byteMax, g: 0, b: 0, a: byteMax)
+            // Pixel 1 encodes orientation as a quaternion.
+            offset += setPixel(&imageData, offset: offset * channels,
+                               r: unitValueToByte(orientation.x, max: byteMax),
+                               g: unitValueToByte(orientation.y, max: byteMax),
+                               b: unitValueToByte(orientation.z, max: byteMax),
+                               a: unitValueToByte(orientation.w, max: byteMax)
+            )
             
-            // Pixel 1 encodes orientation.
-            imageData[offset * channels  + 0] = quaternionValueToByte(attitude.x, max: byteMax)
-            imageData[offset * channels  + 1] = quaternionValueToByte(attitude.y, max: byteMax)
-            imageData[offset * channels  + 2] = quaternionValueToByte(attitude.z, max: byteMax)
-            imageData[offset * channels  + 3] = quaternionValueToByte(attitude.w, max: byteMax)
-            offset += 1
+            // Pixel 2 is red to signify presense of additional encodings
+            offset += setPixel(&imageData, offset: offset * channels, r: byteMax, g: 0, b: 0, a: byteMax)
+            // Pixel 3 encodes roll/pitch/yaw
+            offset += setPixel(&imageData, offset: offset * channels,
+                               r: unitValueToByte(attitude!.roll  / M_PI, max: byteMax),
+                               g: unitValueToByte(attitude!.pitch / M_PI, max: byteMax),
+                               b: unitValueToByte(attitude!.yaw   / M_PI, max: byteMax),
+                               a: byteMax
+            )
+            // Pixels 4, 5 & 6 encode rotation matrix
+            let matrix = attitude!.rotationMatrix
+            offset += setPixel(&imageData, offset: offset * channels,
+                               r: unitValueToByte(matrix.m11, max: byteMax),
+                               g: unitValueToByte(matrix.m12, max: byteMax),
+                               b: unitValueToByte(matrix.m13, max: byteMax),
+                               a: byteMax
+            )
+            offset += setPixel(&imageData, offset: offset * channels,
+                               r: unitValueToByte(matrix.m21, max: byteMax),
+                               g: unitValueToByte(matrix.m22, max: byteMax),
+                               b: unitValueToByte(matrix.m23, max: byteMax),
+                               a: byteMax
+            )
+            offset += setPixel(&imageData, offset: offset * channels,
+                               r: unitValueToByte(matrix.m31, max: byteMax),
+                               g: unitValueToByte(matrix.m32, max: byteMax),
+                               b: unitValueToByte(matrix.m33, max: byteMax),
+                               a: byteMax
+            )
         }
         
         for i in offset ..< Int(depthFrame.width * depthFrame.height) {
@@ -418,9 +456,6 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
     
     func handleMotion(motion: CMDeviceMotion?, error: NSError?)
     {
-        if let attitude = motion?.attitude {
-            orientation = attitude.quaternion
-        }
+        attitude = motion?.attitude
     }
-
 }
