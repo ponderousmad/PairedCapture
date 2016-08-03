@@ -131,6 +131,13 @@
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="nBY-92-2bH">
+                                <rect key="frame" x="20" y="65" width="568" height="457"/>
+                                <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.5" colorSpace="calibratedRGB"/>
+                                <fontDescription key="fontDescription" name="CourierNewPSMT" family="Courier New" pointSize="17"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
@@ -157,6 +164,7 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="attitudeLabel" destination="nBY-92-2bH" id="bvU-Qr-0jn"/>
                         <outlet property="captureCountLabel" destination="s3D-aE-tCc" id="BKH-lA-ygM"/>
                         <outlet property="capturedDepth" destination="6VW-0m-gaY" id="he3-gZ-tvO"/>
                         <outlet property="capturedImage" destination="Syu-Te-fTr" id="Nx9-Kd-sgy"/>

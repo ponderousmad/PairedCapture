@@ -70,8 +70,8 @@
 		7851A6F41C49E51900EEB9E0 /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
 		7851A6F61C49E52500EEB9E0 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		7851A6F81C49E60700EEB9E0 /* PairedCapture-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PairedCapture-Bridging-Header.h"; sourceTree = "<group>"; };
-		7851A6FF1C49E6D200EEB9E0 /* StructureSensor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StructureSensor.swift; sourceTree = "<group>"; };
-		7851A7041C4B2B3200EEB9E0 /* CaptureViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CaptureViewController.swift; sourceTree = "<group>"; };
+		7851A6FF1C49E6D200EEB9E0 /* StructureSensor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = StructureSensor.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
+		7851A7041C4B2B3200EEB9E0 /* CaptureViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = CaptureViewController.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */

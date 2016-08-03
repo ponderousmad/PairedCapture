@@ -14,6 +14,7 @@ protocol SensorObserverDelegate {
     func captureDepth(image: UIImage!)
     func captureImage(image: UIImage!)
     func captureStats(centerDepth: Float)
+    func captureAttitude(attitude: CMAttitude)
     func saveComplete();
 }
 
@@ -457,5 +458,8 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
     func handleMotion(motion: CMDeviceMotion?, error: NSError?)
     {
         attitude = motion?.attitude
+        if let att = attitude {
+            sensorObserver.captureAttitude(att)
+        }
     }
 }
