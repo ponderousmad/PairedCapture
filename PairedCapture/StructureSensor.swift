@@ -29,6 +29,10 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
     var attitude : CMAttitude?
     var prevDepth : [[Float]] = []
     let prevCount = 5
+    let highRes : [Int32] = [2592, 1936]
+    let baseRes : [Int32] = [640, 480]
+    let doubleRes : [Int32] = [1280, 960]
+    var captureHighRes = true;
     
     init(observer: SensorObserverDelegate!) {
         controller = STSensorController.sharedController()
@@ -120,7 +124,8 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
                 updateStatus(error.localizedDescription)
                 return
             }
-            if selectCaptureFormat(device, width: 640, height: 480) {
+            let res = captureHighRes ? highRes : baseRes;
+            if selectCaptureFormat(device, width: res[0], height: res[1]) {
                 updateStatus("Capture format set")
             } else {
                 updateStatus("Capture format not set")
@@ -158,8 +163,27 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
             catch let error as NSError {
                 updateStatus(error.localizedDescription)
             }
-            device.activeVideoMaxFrameDuration = CMTimeMake(1,30)
-            device.activeVideoMinFrameDuration = CMTimeMake(1,30)
+            
+            let frameDuration24FPS = CMTimeMake(1, 24);
+            let frameDuration15FPS = CMTimeMake(1, 15);
+            
+            let activeFrameDuration = device.activeVideoMinFrameDuration;
+            
+            var targetFrameDuration = CMTimeMake(1, 30);
+            
+            // >0 if min duration > desired duration, in which case we need to increase our duration to the minimum
+            // or else the camera will throw an exception.
+            if 0 < CMTimeCompare(activeFrameDuration, targetFrameDuration) {
+                // In firmware <= 1.1, we can only support frame sync with 30 fps or 15 fps.
+                if (0 == CMTimeCompare(activeFrameDuration, frameDuration24FPS)) {
+                    targetFrameDuration = frameDuration24FPS;
+                } else {
+                    targetFrameDuration = frameDuration15FPS;
+                }
+            }
+            
+            device.activeVideoMaxFrameDuration = targetFrameDuration
+            device.activeVideoMinFrameDuration = targetFrameDuration
             device.unlockForConfiguration()
         }
         captureSession?.commitConfiguration()
@@ -438,10 +462,17 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
     
     func save(depthFrame: STDepthFrame!, color: UIImage!) {
         if let depth = renderDepthInMillimeters(depthFrame) {
-            let size = CGSizeMake(max(color.size.width, depth.size.width), color.size.height + depth.size.height)
+            var height = max(color.size.height, depth.size.height)
+            var size = CGSizeMake(max(color.size.width, depth.size.width), 2 * height)
+            if captureHighRes {
+                height = CGFloat(doubleRes[1])
+                size = CGSizeMake(CGFloat(doubleRes[0]), CGFloat(height * 2))
+            }
             UIGraphicsBeginImageContext(size)
-            color.drawInRect(CGRectMake(0, 0, color.size.width, color.size.height))
-            depth.drawInRect(CGRectMake(0, color.size.height, depth.size.width, depth.size.height))
+            color.drawInRect(CGRectMake(0, 0, min(color.size.width, size.width), min(color.size.height, height)))
+            let context = UIGraphicsGetCurrentContext()
+            CGContextSetInterpolationQuality(context, CGInterpolationQuality.None)
+            depth.drawInRect(CGRectMake(0, height, size.width, height))
             let combined = UIGraphicsGetImageFromCurrentImageContext()
             UIGraphicsEndImageContext()
             
