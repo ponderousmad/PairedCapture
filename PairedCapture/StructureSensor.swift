@@ -18,6 +18,13 @@ protocol SensorObserverDelegate {
     func saveComplete();
 }
 
+enum CaptureRes {
+    case Single
+    case Double
+    case Quad
+    case Full
+}
+
 class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoDataOutputSampleBufferDelegate {
     var toRGBA : STDepthToRgba?
     var sensorObserver : SensorObserverDelegate!
@@ -32,7 +39,8 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
     let highRes : [Int32] = [2592, 1936]
     let baseRes : [Int32] = [640, 480]
     let doubleRes : [Int32] = [1280, 960]
-    var captureHighRes = true;
+    let quadRes : [Int32] = [2560, 1920]
+    var captureRes = CaptureRes.Full;
     
     init(observer: SensorObserverDelegate!) {
         controller = STSensorController.sharedController()
@@ -124,7 +132,7 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
                 updateStatus(error.localizedDescription)
                 return
             }
-            let res = captureHighRes ? highRes : baseRes;
+            let res = captureRes == CaptureRes.Single ?  baseRes : highRes;
             if selectCaptureFormat(device, width: res[0], height: res[1]) {
                 updateStatus("Capture format set")
             } else {
@@ -380,8 +388,14 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         let maxRedValue = byteMax - UInt8(channelMax) // Maximum value to encode in red channel.
         let channelsMax = channelMax * channelMax // Max encoded across blue/green
         let maxDepthValue = Float(maxRedValue) * Float(channelsMax) // Max encoded across all channels.
+        var totalSize = depthFrame.width * depthFrame.height
+        if captureRes == CaptureRes.Full {
+            let width = highRes[0]
+            let rows = Int32(ceil(Float(totalSize) / Float(width)))
+            totalSize = width * rows;
+        }
         var offset = 0
-        var imageData = [UInt8](count: Int(depthFrame.width * depthFrame.height) * channels, repeatedValue: byteMax)
+        var imageData = [UInt8](count: Int(totalSize) * channels, repeatedValue: byteMax)
         
         if let orientation = attitude?.quaternion {
             // Pixel 0 is red to signify presense of orientation.
@@ -453,6 +467,9 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
             }
         }
         
+        if captureRes == CaptureRes.Full {
+            return imageFromPixels(&imageData, width: Int(highRes[0]), height: Int(totalSize / highRes[0]))
+        }
         return imageFromPixels(&imageData, width: Int(depthFrame.width), height: Int(depthFrame.height))
     }
     
@@ -464,15 +481,21 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         if let depth = renderDepthInMillimeters(depthFrame) {
             var height = max(color.size.height, depth.size.height)
             var size = CGSizeMake(max(color.size.width, depth.size.width), 2 * height)
-            if captureHighRes {
+            if captureRes == CaptureRes.Double {
                 height = CGFloat(doubleRes[1])
                 size = CGSizeMake(CGFloat(doubleRes[0]), CGFloat(height * 2))
+            } else if captureRes == CaptureRes.Quad {
+                height = CGFloat(quadRes[1])
+                size = CGSizeMake(CGFloat(quadRes[0]), CGFloat(height * 2))
+            } else if captureRes == CaptureRes.Full {
+                height = CGFloat(highRes[1])
+                size = CGSizeMake(CGFloat(highRes[0]), CGFloat(height + depth.size.height))
             }
             UIGraphicsBeginImageContext(size)
             color.drawInRect(CGRectMake(0, 0, min(color.size.width, size.width), min(color.size.height, height)))
             let context = UIGraphicsGetCurrentContext()
             CGContextSetInterpolationQuality(context, CGInterpolationQuality.None)
-            depth.drawInRect(CGRectMake(0, height, size.width, height))
+            depth.drawInRect(CGRectMake(0, height, size.width, size.height - height))
             let combined = UIGraphicsGetImageFromCurrentImageContext()
             UIGraphicsEndImageContext()
             
