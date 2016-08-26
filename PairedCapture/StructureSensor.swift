@@ -40,7 +40,7 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
     let baseRes : [Int32] = [640, 480]
     let doubleRes : [Int32] = [1280, 960]
     let quadRes : [Int32] = [2560, 1920]
-    var captureRes = CaptureRes.Full;
+    var captureRes = CaptureRes.Quad;
     
     init(observer: SensorObserverDelegate!) {
         controller = STSensorController.sharedController()
@@ -122,37 +122,11 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         captureSession!.sessionPreset = AVCaptureSessionPresetInputPriority
         
         videoDevice = AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)!
-        assert(videoDevice != nil);
+        assert(videoDevice != nil)
         
-        if let device = videoDevice {
+        if configureCamera(false) {
             do {
-                try device.lockForConfiguration()
-            }
-            catch let error as NSError {
-                updateStatus(error.localizedDescription)
-                return
-            }
-            let res = captureRes == CaptureRes.Single ?  baseRes : highRes;
-            if selectCaptureFormat(device, width: res[0], height: res[1]) {
-                updateStatus("Capture format set")
-            } else {
-                updateStatus("Capture format not set")
-                return
-            }
-            
-            if device.isExposureModeSupported(AVCaptureExposureMode.ContinuousAutoExposure) {
-                device.exposureMode = AVCaptureExposureMode.ContinuousAutoExposure;
-            }
-            
-            if device.isWhiteBalanceModeSupported(AVCaptureWhiteBalanceMode.ContinuousAutoWhiteBalance) {
-                device.whiteBalanceMode = AVCaptureWhiteBalanceMode.ContinuousAutoWhiteBalance
-            }
-            
-            device.setFocusModeLockedWithLensPosition(1.0, completionHandler: nil)
-            device.unlockForConfiguration()
-
-            do {
-                let input = try AVCaptureDeviceInput(device: device)
+                let input = try AVCaptureDeviceInput(device: videoDevice!)
                 captureSession!.addInput(input)
                 let output = AVCaptureVideoDataOutput()
                 output.alwaysDiscardsLateVideoFrames = true
@@ -164,12 +138,39 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
                 updateStatus(error.localizedDescription)
                 return
             }
-            
+        }
+        
+        captureSession?.commitConfiguration()
+        updateStatus("Camera configured")
+    }
+    
+    func configureCamera(forCapture: Bool) -> Bool {
+        if let device = videoDevice {
             do {
                 try device.lockForConfiguration()
             }
             catch let error as NSError {
                 updateStatus(error.localizedDescription)
+                return false
+            }
+            
+            if device.isExposureModeSupported(AVCaptureExposureMode.ContinuousAutoExposure) {
+                device.exposureMode = AVCaptureExposureMode.ContinuousAutoExposure;
+            }
+            
+            if device.isWhiteBalanceModeSupported(AVCaptureWhiteBalanceMode.ContinuousAutoWhiteBalance) {
+                device.whiteBalanceMode = AVCaptureWhiteBalanceMode.ContinuousAutoWhiteBalance
+            }
+            
+            device.setFocusModeLockedWithLensPosition(1.0, completionHandler: nil)
+            
+            let res = captureRes == CaptureRes.Single && !forCapture ?  baseRes : highRes;
+            if selectCaptureFormat(device, width: res[0], height: res[1]) {
+                updateStatus("Capture format set")
+            } else {
+                updateStatus("Capture format not set")
+                device.unlockForConfiguration()
+                return false
             }
             
             let frameDuration24FPS = CMTimeMake(1, 24);
@@ -192,10 +193,12 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
             
             device.activeVideoMaxFrameDuration = targetFrameDuration
             device.activeVideoMinFrameDuration = targetFrameDuration
+            
             device.unlockForConfiguration()
+            
+            return true
         }
-        captureSession?.commitConfiguration()
-        updateStatus("Camera configured")
+        return false
     }
     
     func fourCharCodeFrom(string : String) -> FourCharCode {
@@ -475,6 +478,7 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
     
     func saveNext() {
         saveNextCapture = true
+        configureCamera(true)
     }
     
     func save(depthFrame: STDepthFrame!, color: UIImage!) {
@@ -503,10 +507,12 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
                 if let png = UIImage(data: imageData) {
                     UIImageWriteToSavedPhotosAlbum(png, nil, nil, nil)
                     sensorObserver.saveComplete()
+                    updateStatus("Captured image at \(Int(size.width))x\(Int(height))")
                 }
             }
         }
         saveNextCapture = false
+        configureCamera(false)
     }
     
     func handleMotion(motion: CMDeviceMotion?, error: NSError?)
