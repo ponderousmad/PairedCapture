@@ -31,20 +31,20 @@ class CaptureViewController: UIViewController, SensorObserverDelegate {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        statusHistory.lineBreakMode = .ByWordWrapping
+        statusHistory.lineBreakMode = .byWordWrapping
         statusHistory.numberOfLines = 0
-        statusHistory.hidden = true
+        statusHistory.isHidden = true
         
-        attitudeLabel.lineBreakMode = .ByWordWrapping
+        attitudeLabel.lineBreakMode = .byWordWrapping
         attitudeLabel.numberOfLines = 0
         
         sensor = StructureSensor(observer: self);
         
         let statusSwipeDown = UISwipeGestureRecognizer(target: self, action: #selector(CaptureViewController.swipeStatus(_:)));
-        statusSwipeDown.direction = .Down
+        statusSwipeDown.direction = .down
         statusLabel.addGestureRecognizer(statusSwipeDown)
         let statusSwipeUp = UISwipeGestureRecognizer(target: self, action: #selector(CaptureViewController.swipeStatus(_:)));
-        statusSwipeUp.direction = .Up
+        statusSwipeUp.direction = .up
         statusLabel.addGestureRecognizer(statusSwipeUp)
     }
     
@@ -52,11 +52,11 @@ class CaptureViewController: UIViewController, SensorObserverDelegate {
         sensor?.tryReconnect()
     }
     
-    func swipeStatus(sender: UISwipeGestureRecognizer) {
-        if (sender.direction == .Up) {
-            statusHistory.hidden = true
-        } else if(sender.direction == .Down) {
-            statusHistory.hidden = false
+    func swipeStatus(_ sender: UISwipeGestureRecognizer) {
+        if (sender.direction == .up) {
+            statusHistory.isHidden = true
+        } else if(sender.direction == .down) {
+            statusHistory.isHidden = false
         }
     }
     
@@ -65,21 +65,21 @@ class CaptureViewController: UIViewController, SensorObserverDelegate {
         // Dispose of any resources that can be recreated.
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(CaptureViewController.activateSensor), name: UIApplicationWillEnterForegroundNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(CaptureViewController.activateSensor), name: NSNotification.Name.UIApplicationWillEnterForeground, object: nil)
         
         activateSensor()
     }
     
-    override func viewDidDisappear(animated: Bool) {
+    override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         
-        NSNotificationCenter.defaultCenter().removeObserver(self, name: UIApplicationWillEnterForegroundNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIApplicationWillEnterForeground, object: nil)
     }
     
-    func statusChange(status: String) {
+    func statusChange(_ status: String) {
         if statusLabel.text != status {
             statusLabel.text = status;
             if let text = statusHistory.text {
@@ -90,19 +90,19 @@ class CaptureViewController: UIViewController, SensorObserverDelegate {
         }
     }
     
-    func captureDepth(image: UIImage!) {
+    func captureDepth(_ image: UIImage!) {
         capturedDepth.image = image
     }
     
-    func captureImage(image: UIImage!) {
+    func captureImage(_ image: UIImage!) {
         capturedImage.image = image
     }
     
-    func captureStats(centerDepth: Float) {
+    func captureStats(_ centerDepth: Float) {
         statsLabel.text = "\(centerDepth / 1000.0) m"
     }
     
-    func captureAttitude(attitude: CMAttitude) {
+    func captureAttitude(_ attitude: CMAttitude) {
         let toDegrees = 180.0 / M_PI
         let roll = attitude.roll * toDegrees
         let pitch = attitude.pitch * toDegrees
@@ -122,7 +122,7 @@ class CaptureViewController: UIViewController, SensorObserverDelegate {
         captureCountLabel.text = "Captures: \(captureCount)";
     }
     
-    @IBAction func saveCapture(sender: AnyObject) {
+    @IBAction func saveCapture(_ sender: AnyObject) {
         sensor?.saveNext()
     }
 }

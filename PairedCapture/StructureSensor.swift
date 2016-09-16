@@ -10,19 +10,19 @@ import Foundation
 import CoreMotion
 
 protocol SensorObserverDelegate {
-    func statusChange(status: String)
-    func captureDepth(image: UIImage!)
-    func captureImage(image: UIImage!)
-    func captureStats(centerDepth: Float)
-    func captureAttitude(attitude: CMAttitude)
+    func statusChange(_ status: String)
+    func captureDepth(_ image: UIImage!)
+    func captureImage(_ image: UIImage!)
+    func captureStats(_ centerDepth: Float)
+    func captureAttitude(_ attitude: CMAttitude)
     func saveComplete();
 }
 
 enum CaptureRes {
-    case Single
-    case Double
-    case Quad
-    case Full
+    case single
+    case double
+    case quad
+    case full
 }
 
 class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoDataOutputSampleBufferDelegate {
@@ -40,10 +40,10 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
     let baseRes : [Int32] = [640, 480]
     let doubleRes : [Int32] = [1280, 960]
     let quadRes : [Int32] = [2560, 1920]
-    var captureRes = CaptureRes.Quad;
+    var captureRes = CaptureRes.quad;
     
     init(observer: SensorObserverDelegate!) {
-        controller = STSensorController.sharedController()
+        controller = STSensorController.shared()
         sensorObserver = observer
         
         super.init()
@@ -52,16 +52,22 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         
         tryInitializeSensor()
         
-        motionManager.startDeviceMotionUpdatesUsingReferenceFrame(
-            CMAttitudeReferenceFrame.XMagneticNorthZVertical,
-            toQueue: NSOperationQueue.currentQueue()!,
-            withHandler:handleMotion
+        motionManager.startDeviceMotionUpdates(
+            using: CMAttitudeReferenceFrame.xMagneticNorthZVertical,
+            to: OperationQueue.current!,
+            withHandler: { motion, error in
+                self.attitude = motion?.attitude
+                if let att = self.attitude {
+                    self.sensorObserver.captureAttitude(att)
+                }
+            }
         )
     }
     
+    @discardableResult
     func tryInitializeSensor() -> Bool {
-        let result = STSensorController.sharedController().initializeSensorConnection()
-        if result == .AlreadyInitialized || result == .Success {
+        let result = STSensorController.shared().initializeSensorConnection()
+        if result == .alreadyInitialized || result == .success {
             return true
         }
         return false
@@ -69,16 +75,16 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
     
     func tryStartStreaming() -> Bool {
         if tryInitializeSensor() {
-            let options : [NSObject : AnyObject] = [
-                kSTStreamConfigKey: NSNumber(integer: STStreamConfig.RegisteredDepth640x480.rawValue),
-                kSTFrameSyncConfigKey: NSNumber(integer: STFrameSyncConfig.DepthAndRgb.rawValue),
+            let options : [AnyHashable: Any] = [
+                kSTStreamConfigKey: NSNumber(value: STStreamConfig.registeredDepth640x480.rawValue as Int),
+                kSTFrameSyncConfigKey: NSNumber(value: STFrameSyncConfig.depthAndRgb.rawValue as Int),
                 kSTHoleFilterEnabledKey: true,
                 kSTColorCameraFixedLensPositionKey: 1.0
             ]
             do {
-                try STSensorController.sharedController().startStreamingWithOptions(options as [NSObject : AnyObject])
-                let toRGBAOptions : [NSObject : AnyObject] = [
-                    kSTDepthToRgbaStrategyKey : NSNumber(integer: STDepthToRgbaStrategy.RedToBlueGradient.rawValue)
+                try STSensorController.shared().startStreaming(options: options as [AnyHashable: Any])
+                let toRGBAOptions : [AnyHashable: Any] = [
+                    kSTDepthToRgbaStrategyKey : NSNumber(value: STDepthToRgbaStrategy.redToBlueGradient.rawValue as Int)
                 ]
                 toRGBA = STDepthToRgba(options: toRGBAOptions)
                 startCamera()
@@ -91,16 +97,16 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
     }
     
     func checkCameraAuthorized() -> Bool {
-        if AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo).count == 0 {
+        if AVCaptureDevice.devices(withMediaType: AVMediaTypeVideo).count == 0 {
             return false;
         }
         
-        let status = AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)
-        if status != AVAuthorizationStatus.Authorized {
-            AVCaptureDevice.requestAccessForMediaType(AVMediaTypeVideo) {
+        let status = AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeVideo)
+        if status != AVAuthorizationStatus.authorized {
+            AVCaptureDevice.requestAccess(forMediaType: AVMediaTypeVideo) {
                 (granted: Bool) in
                 if granted {
-                    dispatch_async(dispatch_get_main_queue()) {
+                    DispatchQueue.main.async {
                         self.startCamera()
                     }
                 }
@@ -121,7 +127,7 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         captureSession!.beginConfiguration()
         captureSession!.sessionPreset = AVCaptureSessionPresetInputPriority
         
-        videoDevice = AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)!
+        videoDevice = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo)!
         assert(videoDevice != nil)
         
         if configureCamera(false) {
@@ -130,8 +136,8 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
                 captureSession!.addInput(input)
                 let output = AVCaptureVideoDataOutput()
                 output.alwaysDiscardsLateVideoFrames = true
-                output.videoSettings = [kCVPixelBufferPixelFormatTypeKey: Int(kCVPixelFormatType_420YpCbCr8BiPlanarFullRange)]
-                output.setSampleBufferDelegate(self, queue: dispatch_get_main_queue())
+                output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as AnyHashable: Int(kCVPixelFormatType_420YpCbCr8BiPlanarFullRange)]
+                output.setSampleBufferDelegate(self, queue: DispatchQueue.main)
                 captureSession!.addOutput(output)
             }
             catch let error as NSError{
@@ -144,7 +150,8 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         updateStatus("Camera configured")
     }
     
-    func configureCamera(forCapture: Bool) -> Bool {
+    @discardableResult
+    func configureCamera(_ forCapture: Bool) -> Bool {
         if let device = videoDevice {
             do {
                 try device.lockForConfiguration()
@@ -154,17 +161,17 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
                 return false
             }
             
-            if device.isExposureModeSupported(AVCaptureExposureMode.ContinuousAutoExposure) {
-                device.exposureMode = AVCaptureExposureMode.ContinuousAutoExposure;
+            if device.isExposureModeSupported(AVCaptureExposureMode.continuousAutoExposure) {
+                device.exposureMode = AVCaptureExposureMode.continuousAutoExposure;
             }
             
-            if device.isWhiteBalanceModeSupported(AVCaptureWhiteBalanceMode.ContinuousAutoWhiteBalance) {
-                device.whiteBalanceMode = AVCaptureWhiteBalanceMode.ContinuousAutoWhiteBalance
+            if device.isWhiteBalanceModeSupported(AVCaptureWhiteBalanceMode.continuousAutoWhiteBalance) {
+                device.whiteBalanceMode = AVCaptureWhiteBalanceMode.continuousAutoWhiteBalance
             }
             
             device.setFocusModeLockedWithLensPosition(1.0, completionHandler: nil)
             
-            let res = captureRes == CaptureRes.Single && !forCapture ?  baseRes : highRes;
+            let res = captureRes == CaptureRes.single && !forCapture ?  baseRes : highRes;
             if selectCaptureFormat(device, width: res[0], height: res[1]) {
                 updateStatus("Capture format set")
             } else {
@@ -201,7 +208,7 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         return false
     }
     
-    func fourCharCodeFrom(string : String) -> FourCharCode {
+    func fourCharCodeFrom(_ string : String) -> FourCharCode {
         assert(string.characters.count == 4, "String length must be 4")
         var result : FourCharCode = 0
         for char in string.utf16 {
@@ -210,7 +217,7 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         return result
     }
     
-    func selectCaptureFormat(device: AVCaptureDevice, width: Int32?=nil, height: Int32?=nil) -> Bool {
+    func selectCaptureFormat(_ device: AVCaptureDevice, width: Int32?=nil, height: Int32?=nil) -> Bool {
         for f in device.formats {
             let format = f as! AVCaptureDeviceFormat
             if let formatDesc = format.formatDescription {
@@ -254,11 +261,11 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         
     }
     
-    func captureOutput(captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, fromConnection connection: AVCaptureConnection!) {
+    func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
         controller.frameSyncNewColorBuffer(sampleBuffer)
     }
     
-    func updateStatus(status: String) {
+    func updateStatus(_ status: String) {
         sensorObserver.statusChange(status);
     }
     
@@ -283,7 +290,7 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         updateStatus("Disconnected");
     }
     
-    func sensorDidStopStreaming(reason: STSensorControllerDidStopStreamingReason)
+    func sensorDidStopStreaming(_ reason: STSensorControllerDidStopStreamingReason)
     {
         updateStatus("Stopped Streaming");
         stopCamera()
@@ -296,12 +303,12 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         updateStatus("Low Battery");
     }
     
-    func sensorDidOutputDepthFrame(depthFrame: STDepthFrame!) {
+    func sensorDidOutputDepthFrame(_ depthFrame: STDepthFrame!) {
         renderDepth(depthFrame)
         forgetDepth()
     }
     
-    func sensorDidOutputSynchronizedDepthFrame(depthFrame: STDepthFrame!, colorFrame: STColorFrame!) {
+    func sensorDidOutputSynchronizedDepthFrame(_ depthFrame: STDepthFrame!, colorFrame: STColorFrame!) {
         renderDepth(depthFrame)
         if let image = imageFromSampleBuffer(colorFrame.sampleBuffer) {
             self.sensorObserver.captureImage(image)
@@ -312,14 +319,14 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         forgetDepth()
     }
     
-    func renderDepth(depthFrame: STDepthFrame) {
+    func renderDepth(_ depthFrame: STDepthFrame) {
         let size : Int = (Int)(depthFrame.width * depthFrame.height)
         let buffer = UnsafeMutableBufferPointer<Float>(start: depthFrame.depthInMillimeters, count: size)
         prevDepth.append(Array(buffer))
         if let renderer = toRGBA {
             updateStatus("Showing Depth \(depthFrame.width)x\(depthFrame.height)");
-            let pixels = renderer.convertDepthFrameToRgba(depthFrame)
-            if let image = imageFromPixels(pixels, width: Int(renderer.width), height: Int(renderer.height)) {
+            let pixels = renderer.convertDepthFrame(toRgba: depthFrame)
+            if let image = imageFromPixels(pixels!, width: Int(renderer.width), height: Int(renderer.height)) {
                 self.sensorObserver.captureDepth(image)
             }
             
@@ -334,49 +341,49 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         }
     }
     
-    func imageFromSampleBuffer(sampleBuffer : CMSampleBufferRef) -> UIImage? {
+    func imageFromSampleBuffer(_ sampleBuffer : CMSampleBuffer) -> UIImage? {
         if let cvPixels = CMSampleBufferGetImageBuffer(sampleBuffer) {
-            let coreImage = CIImage(CVPixelBuffer: cvPixels)
+            let coreImage = CIImage(cvPixelBuffer: cvPixels)
             let context = CIContext()
-            let rect = CGRectMake(0, 0, CGFloat(CVPixelBufferGetWidth(cvPixels)), CGFloat(CVPixelBufferGetHeight(cvPixels)))
-            let cgImage = context.createCGImage(coreImage, fromRect: rect)
-            let image = UIImage(CGImage: cgImage)
+            let rect = CGRect(x: 0, y: 0, width: CGFloat(CVPixelBufferGetWidth(cvPixels)), height: CGFloat(CVPixelBufferGetHeight(cvPixels)))
+            let cgImage = context.createCGImage(coreImage, from: rect)
+            let image = UIImage(cgImage: cgImage!)
             return image
         }
         return nil
     }
     
-    func imageFromPixels(pixels : UnsafeMutablePointer<UInt8>, width: Int, height: Int) -> UIImage? {
+    func imageFromPixels(_ pixels : UnsafeMutablePointer<UInt8>, width: Int, height: Int) -> UIImage? {
         let colorSpace = CGColorSpaceCreateDeviceRGB();
-        let bitmapInfo = CGBitmapInfo.ByteOrder32Big.union(CGBitmapInfo(rawValue: CGImageAlphaInfo.NoneSkipLast.rawValue))
+        let bitmapInfo = CGBitmapInfo.byteOrder32Big.union(CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipLast.rawValue))
         
-        let provider = CGDataProviderCreateWithCFData(NSData(bytes:pixels, length: width*height*4))
+        let provider = CGDataProvider(data: Data(bytes: UnsafePointer<UInt8>(pixels), count: width*height*4) as CFData)
         
-        let image = CGImageCreate(
-            width,                       //width
-            height,                      //height
-            8,                           //bits per component
-            8 * 4,                       //bits per pixel
-            width * 4,                   //bytes per row
-            colorSpace,                  //Quartz color space
-            bitmapInfo,                  //Bitmap info (alpha channel?, order, etc)
-            provider,                    //Source of data for bitmap
-            nil,                         //decode
-            false,                       //pixel interpolation
-            CGColorRenderingIntent.RenderingIntentDefault);     //rendering intent
+        let image = CGImage(
+            width: width,                       //width
+            height: height,                      //height
+            bitsPerComponent: 8,                           //bits per component
+            bitsPerPixel: 8 * 4,                       //bits per pixel
+            bytesPerRow: width * 4,                   //bytes per row
+            space: colorSpace,                  //Quartz color space
+            bitmapInfo: bitmapInfo,                  //Bitmap info (alpha channel?, order, etc)
+            provider: provider!,                    //Source of data for bitmap
+            decode: nil,                         //decode
+            shouldInterpolate: false,                       //pixel interpolation
+            intent: CGColorRenderingIntent.defaultIntent);     //rendering intent
         
-        return UIImage(CGImage: image!)
+        return UIImage(cgImage: image!)
     }
     
-    func unitValueToByte(v : Double, max : UInt8) -> UInt8 {
+    func unitValueToByte(_ v : Double, max : UInt8) -> UInt8 {
         return UInt8(Double(max) * (v + 1) / 2)
     }
     
-    func byteToUnitValue(v : UInt8, max : UInt8) -> Double {
+    func byteToUnitValue(_ v : UInt8, max : UInt8) -> Double {
         return (Double(v) / Double(max) * 2) - 1
     }
     
-    func setPixel(inout image : [UInt8], offset : Int, r : UInt8, g : UInt8, b : UInt8, a : UInt8) -> Int {
+    func setPixel(_ image : inout [UInt8], offset : Int, r : UInt8, g : UInt8, b : UInt8, a : UInt8) -> Int {
         image[offset + 0] = r
         image[offset + 1] = g
         image[offset + 2] = b
@@ -384,7 +391,7 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         return 1
     }
     
-    func renderDepthInMillimeters(depthFrame : STDepthFrame!) -> UIImage? {
+    func renderDepthInMillimeters(_ depthFrame : STDepthFrame!) -> UIImage? {
         let byteMax = UInt8(255)
         let channels = 4
         let channelMax = 8 // Maximum value to encode in blue/green channels.
@@ -392,13 +399,13 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         let channelsMax = channelMax * channelMax // Max encoded across blue/green
         let maxDepthValue = Float(maxRedValue) * Float(channelsMax) // Max encoded across all channels.
         var totalSize = depthFrame.width * depthFrame.height
-        if captureRes == CaptureRes.Full {
+        if captureRes == CaptureRes.full {
             let width = highRes[0]
             let rows = Int32(ceil(Float(totalSize) / Float(width)))
             totalSize = width * rows;
         }
         var offset = 0
-        var imageData = [UInt8](count: Int(totalSize) * channels, repeatedValue: byteMax)
+        var imageData = [UInt8](repeating: byteMax, count: Int(totalSize) * channels)
         
         if let orientation = attitude?.quaternion {
             // Pixel 0 is red to signify presense of orientation.
@@ -470,7 +477,7 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
             }
         }
         
-        if captureRes == CaptureRes.Full {
+        if captureRes == CaptureRes.full {
             return imageFromPixels(&imageData, width: Int(highRes[0]), height: Int(totalSize / highRes[0]))
         }
         return imageFromPixels(&imageData, width: Int(depthFrame.width), height: Int(depthFrame.height))
@@ -481,29 +488,29 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         configureCamera(true)
     }
     
-    func save(depthFrame: STDepthFrame!, color: UIImage!) {
+    func save(_ depthFrame: STDepthFrame!, color: UIImage!) {
         if let depth = renderDepthInMillimeters(depthFrame) {
             var height = max(color.size.height, depth.size.height)
-            var size = CGSizeMake(max(color.size.width, depth.size.width), 2 * height)
-            if captureRes == CaptureRes.Double {
+            var size = CGSize(width: max(color.size.width, depth.size.width), height: 2 * height)
+            if captureRes == CaptureRes.double {
                 height = CGFloat(doubleRes[1])
-                size = CGSizeMake(CGFloat(doubleRes[0]), CGFloat(height * 2))
-            } else if captureRes == CaptureRes.Quad {
+                size = CGSize(width: CGFloat(doubleRes[0]), height: CGFloat(height * 2))
+            } else if captureRes == CaptureRes.quad {
                 height = CGFloat(quadRes[1])
-                size = CGSizeMake(CGFloat(quadRes[0]), CGFloat(height * 2))
-            } else if captureRes == CaptureRes.Full {
+                size = CGSize(width: CGFloat(quadRes[0]), height: CGFloat(height * 2))
+            } else if captureRes == CaptureRes.full {
                 height = CGFloat(highRes[1])
-                size = CGSizeMake(CGFloat(highRes[0]), CGFloat(height + depth.size.height))
+                size = CGSize(width: CGFloat(highRes[0]), height: CGFloat(height + depth.size.height))
             }
             UIGraphicsBeginImageContext(size)
-            color.drawInRect(CGRectMake(0, 0, min(color.size.width, size.width), min(color.size.height, height)))
+            color.draw(in: CGRect(x: 0, y: 0, width: min(color.size.width, size.width), height: min(color.size.height, height)))
             let context = UIGraphicsGetCurrentContext()
-            CGContextSetInterpolationQuality(context, CGInterpolationQuality.None)
-            depth.drawInRect(CGRectMake(0, height, size.width, size.height - height))
+            context!.interpolationQuality = CGInterpolationQuality.none
+            depth.draw(in: CGRect(x: 0, y: height, width: size.width, height: size.height - height))
             let combined = UIGraphicsGetImageFromCurrentImageContext()
             UIGraphicsEndImageContext()
             
-            if let imageData = UIImagePNGRepresentation(combined) {
+            if let imageData = UIImagePNGRepresentation(combined!) {
                 if let png = UIImage(data: imageData) {
                     UIImageWriteToSavedPhotosAlbum(png, nil, nil, nil)
                     sensorObserver.saveComplete()
@@ -513,13 +520,5 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
         }
         saveNextCapture = false
         configureCamera(false)
-    }
-    
-    func handleMotion(motion: CMDeviceMotion?, error: NSError?)
-    {
-        attitude = motion?.attitude
-        if let att = attitude {
-            sensorObserver.captureAttitude(att)
-        }
     }
 }

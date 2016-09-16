@@ -16,7 +16,7 @@ class RootViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        if let controller = self.storyboard?.instantiateViewControllerWithIdentifier("CaptureViewController") as? CaptureViewController {
+        if let controller = self.storyboard?.instantiateViewController(withIdentifier: "CaptureViewController") as? CaptureViewController {
             self.captureController = controller
             self.view.addSubview(self.captureController!.view)
         }
