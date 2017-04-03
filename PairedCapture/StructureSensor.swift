@@ -422,9 +422,9 @@ class StructureSensor : NSObject, STSensorControllerDelegate, AVCaptureVideoData
             offset += setPixel(&imageData, offset: offset * channels, r: byteMax, g: 0, b: 0, a: byteMax)
             // Pixel 3 encodes roll/pitch/yaw
             offset += setPixel(&imageData, offset: offset * channels,
-                               r: unitValueToByte(attitude!.roll  / M_PI, max: byteMax),
-                               g: unitValueToByte(attitude!.pitch / M_PI, max: byteMax),
-                               b: unitValueToByte(attitude!.yaw   / M_PI, max: byteMax),
+                               r: unitValueToByte(attitude!.roll  / Double.pi, max: byteMax),
+                               g: unitValueToByte(attitude!.pitch / Double.pi, max: byteMax),
+                               b: unitValueToByte(attitude!.yaw   / Double.pi, max: byteMax),
                                a: byteMax
             )
             // Pixels 4, 5 & 6 encode rotation matrix

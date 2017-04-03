@@ -103,7 +103,7 @@ class CaptureViewController: UIViewController, SensorObserverDelegate {
     }
     
     func captureAttitude(_ attitude: CMAttitude) {
-        let toDegrees = 180.0 / M_PI
+        let toDegrees = 180.0 / Double.pi
         let roll = attitude.roll * toDegrees
         let pitch = attitude.pitch * toDegrees
         let yaw = attitude.yaw * toDegrees
